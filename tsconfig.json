@@ -26,6 +26,7 @@
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    "typeRoots": ["./types", "./node_modules/@types"],  
 
     // Style Options
     // "noImplicitReturns": true,
@@ -44,5 +45,6 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+     "include": ["src", "types"]
 }
