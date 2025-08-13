@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String
+  fullname     String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  // Relasi
+  todos       Todo[]           @relation("UserTodos")
+  sharedTodos TodoSharedUser[] @relation("UserSharedTodos")
+}
+
+model Todo {
+  id          Int       @id @default(autoincrement())
+  ownerId     Int
+  title       String
+  description String?
+  isCompleted Boolean   @default(false)
+  dueDate     DateTime?
+  priority    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relasi
+  owner      User             @relation("UserTodos", fields: [ownerId], references: [id])
+  sharedWith TodoSharedUser[] @relation("TodoSharedList")
+}
+
+model TodoSharedUser {
+  id               Int      @id @default(autoincrement())
+  todoId           Int
+  sharedWithUserId Int
+  canEdit          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  // Relasi
+  todo           Todo @relation("TodoSharedList", fields: [todoId], references: [id])
+  sharedWithUser User @relation("UserSharedTodos", fields: [sharedWithUserId], references: [id])
+
+  @@unique([todoId, sharedWithUserId]) // supaya tidak duplicate share
+}
