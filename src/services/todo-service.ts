@@ -94,3 +94,10 @@ export async function deleteTodo(id: number) {
     where: { id },
   });
 }
+
+export async function isTodoShared(todoId: number): Promise<boolean> {
+  const result = await prisma.todoSharedUser.findFirst({
+    where: { todoId },
+  });
+  return !!result;
+}

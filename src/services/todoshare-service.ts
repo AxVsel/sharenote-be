@@ -65,3 +65,28 @@ export async function updateTodoSharePermission(
     },
   });
 }
+
+export async function getTodosSharedByOwner(ownerId: number) {
+  return prisma.todo.findMany({
+    where: {
+      ownerId, // hanya todo yang dimiliki user ini
+      sharedWith: {
+        some: {}, // hanya yang sudah di-share
+      },
+    },
+    include: {
+      sharedWith: {
+        include: {
+          sharedWithUser: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              fullname: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}

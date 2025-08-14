@@ -6,6 +6,7 @@ import {
   updateTodo,
   deleteTodo,
   updateTodoContent,
+  isTodoShared,
 } from "../services/todo-service";
 
 export async function createTodoHandler(req: Request, res: Response) {
@@ -115,6 +116,7 @@ export async function getTodosUser(req: Request, res: Response) {
   }
 }
 
+// no protection only access this endpoint can update
 export async function updateTodoHandler(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
@@ -158,15 +160,28 @@ export async function updateTodoShareUser(req: Request, res: Response) {
 export async function deleteTodoHandler(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
+
+    // 1. Cek apakah todo sedang dibagikan
+    const isShared = await isTodoShared(id); // return true/false
+    if (isShared) {
+      return res.status(403).json({
+        code: 403,
+        status: "error",
+        message:
+          "Todo ini sedang dibagikan. Unshare terlebih dahulu sebelum menghapus.",
+      });
+    }
+
+    // 2. Hapus todo jika tidak dibagikan
     await deleteTodo(id);
     return res.status(200).json({
       code: 200,
       status: "success",
-      message: "Create todo successful.",
+      message: "Delete todo successful.",
       id,
     });
   } catch (err: any) {
-    console.error("❌ Error Login:", err);
+    console.error("❌ Error delete todo:", err);
     return res.status(500).json({
       code: 500,
       status: "error",
