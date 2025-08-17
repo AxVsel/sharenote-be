@@ -125,7 +125,7 @@ export async function handleGetTodosSharedWithUser(
 
 export async function handleUnshareTodo(req: Request, res: Response) {
   try {
-    const ownerId = Number((req as any).user?.id); // user yang login
+    const userId = Number((req as any).user?.id); // user yang login
     const { id } = req.params; // ini id dari tabel TodoSharedUser
 
     if (!id) {
@@ -138,15 +138,22 @@ export async function handleUnshareTodo(req: Request, res: Response) {
       where: { id: Number(id) },
       include: { todo: true },
     });
+
     if (!sharedRecord) {
       return res.status(404).json({ message: "Data share tidak ditemukan." });
     }
-    // Cek apakah todo ini milik user yang login
-    if (sharedRecord.todo.ownerId !== ownerId) {
+    // Cek apakah user yang login boleh menghapus:
+    // - owner dari todo, atau
+    // - user yang di-share
+    if (
+      sharedRecord.todo.ownerId !== userId &&
+      sharedRecord.sharedWithUserId !== userId
+    ) {
       return res.status(403).json({
         message: "Anda tidak memiliki izin untuk unshare todo ini.",
       });
     }
+
     // Hapus share
     await prisma.todoSharedUser.delete({
       where: { id: Number(id) },

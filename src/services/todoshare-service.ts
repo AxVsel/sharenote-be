@@ -23,7 +23,15 @@ export async function getTodosSharedWithUser(userId: number) {
       sharedWithUserId: userId,
     },
     include: {
-      todo: true, // ikut sertakan detail todo
+      todo: {
+        include: {
+          owner: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
     },
   });
 }
