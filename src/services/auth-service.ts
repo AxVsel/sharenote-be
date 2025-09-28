@@ -12,6 +12,7 @@ export async function registerUser(
   if (existingUser) {
     throw new Error("Email already registered");
   }
+
   // Hash password
   const passwordHash = await bcrypt.hash(password, 10);
   // Simpan user baru
