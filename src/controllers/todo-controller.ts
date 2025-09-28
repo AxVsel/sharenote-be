@@ -22,7 +22,6 @@ export async function createTodoHandler(req: Request, res: Response) {
       return res.status(400).json({ message: "Title is required" });
     }
 
-    // Buat objek data secara dinamis agar tidak menyertakan properti dueDate jika undefined
     const todoData: {
       ownerId: number;
       title: string;
@@ -61,7 +60,7 @@ export async function createTodoHandler(req: Request, res: Response) {
 export async function getTodosId(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
-    const todo = await getTodoById(id); // pake yang diimport langsung
+    const todo = await getTodoById(id);
     if (!todo) {
       return res.status(404).json({ message: "Todo not found" });
     }
@@ -86,37 +85,41 @@ export async function getTodosUser(req: Request, res: Response) {
   try {
     const ownerId = Number((req as any).user?.id);
     if (!ownerId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(400).json({ message: "User ID not found" });
     }
 
-    const todos = await getTodosByOwner(ownerId);
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : 10;
+    const isCompleted = req.query.isCompleted
+      ? req.query.isCompleted === "true"
+      : undefined;
+    const sortBy = req.query.sortBy === "oldest" ? "oldest" : "newest";
+    const priority = req.query.priority
+      ? parseInt(req.query.priority as string, 10)
+      : undefined;
 
-    if (!todos || todos.length === 0) {
-      return res.status(200).json({
-        code: 200,
-        status: "success",
-        message: "Kamu belum create todo.",
-        todos: [],
-      });
+    const options: any = {
+      ownerId,
+      page,
+      limit,
+      sortBy,
+      priority,
+    };
+    if (isCompleted !== undefined) {
+      options.isCompleted = isCompleted;
     }
 
-    return res.status(200).json({
-      code: 200,
-      status: "success",
-      message: "find user todo successful.",
-      todos,
-    });
-  } catch (err: any) {
-    console.error("❌ Error Login:", err);
-    return res.status(500).json({
-      code: 500,
-      status: "error",
-      message: "Terjadi kesalahan pada server.",
-    });
+    const todos = await getTodosByOwner(options);
+
+    res.json(todos);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
-// no protection only access this endpoint can update
 export async function updateTodoHandler(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
@@ -141,7 +144,7 @@ export async function updateTodoHandler(req: Request, res: Response) {
 export async function updateTodoShareUser(req: Request, res: Response) {
   try {
     const todoId = Number(req.params.id);
-    const ownerId = (req as any).user.id; // dari middleware requireAuth
+    const ownerId = (req as any).user.id;
     const { title, description } = req.body;
 
     const updatedTodo = await updateTodoContent(

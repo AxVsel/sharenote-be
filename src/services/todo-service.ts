@@ -1,5 +1,62 @@
 import { prisma } from "../prisma/client";
 
+export interface GetTodosOptions {
+  ownerId: number;
+  page?: number;
+  limit?: number;
+  isCompleted?: boolean;
+  sortBy?: "newest" | "oldest";
+  priority?: number;
+}
+
+export async function getTodosByOwner({
+  ownerId,
+  page = 1,
+  limit = 10,
+  isCompleted,
+  sortBy = "newest",
+  priority,
+}: GetTodosOptions) {
+  const where: any = { ownerId };
+
+  if (typeof isCompleted === "boolean") {
+    where.isCompleted = isCompleted;
+  }
+  if (priority !== undefined) {
+    where.priority = priority;
+  }
+
+  // hitung total data
+  const total = await prisma.todo.count({ where });
+  const totalPages = Math.ceil(total / limit);
+
+  // kalau page > totalPages, kunci ke totalPages (atau 1 kalau total=0)
+  const safePage = page > totalPages ? totalPages || 1 : page;
+  const skip = (safePage - 1) * limit;
+
+  const orderBy =
+    sortBy === "oldest"
+      ? { createdAt: "asc" as const }
+      : { createdAt: "desc" as const };
+
+  const todos = await prisma.todo.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy,
+  });
+
+  return {
+    data: todos,
+    pagination: {
+      total,
+      page: safePage,
+      limit,
+      totalPages,
+    },
+  };
+}
+
 export async function createTodo(data: {
   ownerId: number;
   title: string;
@@ -25,13 +82,6 @@ export async function getTodoById(id: number) {
       owner: true,
       sharedWith: true,
     },
-  });
-}
-
-export async function getTodosByOwner(ownerId: number) {
-  return prisma.todo.findMany({
-    where: { ownerId },
-    orderBy: { dueDate: "asc" },
   });
 }
 

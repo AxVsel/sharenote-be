@@ -9,8 +9,8 @@ export async function shareTodoWithUser(
 ) {
   return prisma.todoSharedUser.create({
     data: {
-      todoId: Number(todoId), // pastikan integer
-      sharedWithUserId: Number(sharedWithUserId), // pastikan integer
+      todoId: Number(todoId),
+      sharedWithUserId: Number(sharedWithUserId),
       canEdit,
     },
   });
