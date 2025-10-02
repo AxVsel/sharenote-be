@@ -47,8 +47,8 @@ export async function handleRegister(req: Request, res: Response) {
 
 export async function handleLogin(req: Request, res: Response) {
   try {
-    const { identifier, password } = req.body;
-    const user = await loginUser(identifier, password);
+    const { identifier, passwordHash } = req.body;
+    const user = await loginUser(identifier, passwordHash);
 
     if (!user) {
       return res.status(401).json({

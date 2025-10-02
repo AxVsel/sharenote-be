@@ -49,10 +49,9 @@ model TodoSharedUser {
   sharedWithUserId Int
   canEdit          Boolean  @default(false)
   createdAt        DateTime @default(now())
-
   // Relasi
-  todo           Todo @relation("TodoSharedList", fields: [todoId], references: [id])
-  sharedWithUser User @relation("UserSharedTodos", fields: [sharedWithUserId], references: [id])
+  todo             Todo     @relation("TodoSharedList", fields: [todoId], references: [id])
+  sharedWithUser   User     @relation("UserSharedTodos", fields: [sharedWithUserId], references: [id])
 
   @@unique([todoId, sharedWithUserId]) // supaya tidak duplicate share
 }

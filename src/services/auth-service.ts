@@ -12,6 +12,7 @@ export async function registerUser(
   if (existingUser) {
     throw new Error("Email already registered");
   }
+
   // Hash password
   const passwordHash = await bcrypt.hash(password, 10);
   // Simpan user baru
@@ -35,17 +36,14 @@ export async function loginUser(identifier: string, password: string) {
       console.log("❌ User not found");
       return null;
     }
-
     console.log("✅ User found:", user);
 
     if (!user?.passwordHash) {
       console.log("❌ Password null");
       return null;
     }
-
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     console.log("🔐 Password valid?", isPasswordValid);
-
     if (!isPasswordValid) return null;
 
     return user;

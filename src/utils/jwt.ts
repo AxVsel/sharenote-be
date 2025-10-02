@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config(); // WAJIB: load .env sebelum akses process.env
+dotenv.config();
 
 import jwt from "jsonwebtoken";
 
